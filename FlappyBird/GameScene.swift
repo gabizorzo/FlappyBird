@@ -27,8 +27,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     
     // MARK: - Collision
     
-    let birdCategory: UInt32 = 1 << 2
-    let pipeCategory: UInt32 = 1 << 1
+    let birdCategory: UInt32 = 1 << 3
+    let pipeCategory: UInt32 = 1 << 2
+    let floorCategory: UInt32 = 1 << 1
     
     // MARK: - Init
     
@@ -73,8 +74,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         birdPhysicsBody.restitution = 0
         birdPhysicsBody.usesPreciseCollisionDetection = true
         birdPhysicsBody.categoryBitMask = birdCategory
-        birdPhysicsBody.collisionBitMask = birdCategory | pipeCategory
-        birdPhysicsBody.contactTestBitMask = birdCategory | pipeCategory
+        birdPhysicsBody.collisionBitMask = birdCategory | pipeCategory | floorCategory
+        birdPhysicsBody.contactTestBitMask = birdCategory | pipeCategory | floorCategory
         bird.physicsBody = birdPhysicsBody
         
         let floor = SKSpriteNode(color: .clear, size: CGSize(width: (self.scene?.size.width)!, height: 130.0))
@@ -83,6 +84,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         let floorPhysicsBody = SKPhysicsBody(rectangleOf: floor.frame.size)
         floorPhysicsBody.isDynamic = false
+        floorPhysicsBody.affectedByGravity = false
+        floorPhysicsBody.usesPreciseCollisionDetection = true
+        floorPhysicsBody.categoryBitMask = floorCategory
         floor.physicsBody = floorPhysicsBody
         
         let ceiling = SKSpriteNode(color: .clear, size: CGSize(width: (self.scene?.size.width)!, height: 130.0))
@@ -104,8 +108,10 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         if (contact.bodyA.categoryBitMask == birdCategory) &&
             (contact.bodyB.categoryBitMask == pipeCategory) {
-
-            print("Hit")
+            print("Hit pipe")
+        } else if (contact.bodyA.categoryBitMask == birdCategory) &&
+                    (contact.bodyB.categoryBitMask == floorCategory) {
+            print("Hit floor")
         }
     }
     
@@ -172,7 +178,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     func createLabel() {
         gameLabel.text = "Almost FlappyBird"
         startLabel.text = "Tap to start"
-
+        
         gameLabel.fontSize = 40
         startLabel.fontSize = 25
         
@@ -245,6 +251,10 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
                 node.position.x += ((self.scene?.size.width)! * 3)
             }
         }
+        //        movePipes()
+    }
+    
+    func movePipes() {
         self.enumerateChildNodes(withName: "TopPipe") { node, error in
             node.position.x -= 2
             if node.position.x < -((self.scene?.size.width)!) {
@@ -257,6 +267,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
                 node.position.x += ((self.scene?.size.width)! * 3)
             }
         }
+        
     }
     
     
@@ -272,31 +283,36 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         }
         
         let deltaTime = currentTime - lastCurrentTime
-       
+        
         
         moveGrounds()
         
-        if deltaTime > 2.5 {
-            let maxTop = (self.scene?.size.height)! - 80 - 200
-            let topValue = Int.random(in: 230..<Int(maxTop))
-            let bottomValue = Int(maxTop) + 200 - topValue
+        if didStartGame {
             
-            createTopPipe(yPosition: topValue)
-            createBottomPipe(yPosition: bottomValue)
-            
-            lastCurrentTime = currentTime
+            if deltaTime > 2.5 {
+                let maxTop = (self.scene?.size.height)! - 80 - 200
+                let topValue = Int.random(in: 230..<Int(maxTop))
+                let bottomValue = Int(maxTop) + 200 - topValue
+                
+                createTopPipe(yPosition: topValue)
+                createBottomPipe(yPosition: bottomValue)
+                
+                lastCurrentTime = currentTime
+            }
+            movePipes()
         }
+        
         
         self.enumerateChildNodes(withName: "TopPipe") { node, error in
             guard let body = node.physicsBody else { return }
-                body.usesPreciseCollisionDetection = true
-                body.categoryBitMask = self.pipeCategory
+            body.usesPreciseCollisionDetection = true
+            body.categoryBitMask = self.pipeCategory
         }
-
+        
         self.enumerateChildNodes(withName: "BottomPipe") { node, error in
             guard let body = node.physicsBody else { return }
-                body.usesPreciseCollisionDetection = true
-                body.categoryBitMask = self.pipeCategory
+            body.usesPreciseCollisionDetection = true
+            body.categoryBitMask = self.pipeCategory
         }
         
         self.enumerateChildNodes(withName: "TopPipe") { node, error in
