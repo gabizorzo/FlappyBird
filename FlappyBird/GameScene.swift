@@ -10,79 +10,261 @@ import GameplayKit
 
 class GameScene: SKScene {
     
-    private var label : SKLabelNode?
-    private var spinnyNode : SKShapeNode?
+    private var lastCurrentTime: Double = -1
+    
+    private var didStartGame: Bool = false
+    
+    // MARK: - Nodes
+    
+    private var background: SKSpriteNode = SKSpriteNode()
+    private var bird: SKSpriteNode = SKSpriteNode()
+    private var startLabel: SKLabelNode = SKLabelNode()
+    private var gameLabel: SKLabelNode = SKLabelNode()
+    
+    // MARK: - Animation
+    
+    private var birdFlyingFrames: [SKTexture] = []
+    
+    // MARK: - Init
     
     override func didMove(to view: SKView) {
         
-        // Get label node from scene and store it for use later
-        self.label = self.childNode(withName: "//helloLabel") as? SKLabelNode
-        if let label = self.label {
-            label.alpha = 0.0
-            label.run(SKAction.fadeIn(withDuration: 2.0))
+        self.anchorPoint = CGPoint(x: 0.5, y: 0.5)
+        
+        createBackground()
+        createBird()
+        animateBird()
+        createFloor()
+        createLabel()
+        
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(jump))
+        self.view?.addGestureRecognizer(tapGesture)
+        
+    }
+    
+    // MARK: - Handlers
+    
+    @objc func jump() {
+        if didStartGame {
+            bird.physicsBody?.isDynamic = false
+            bird.physicsBody?.isDynamic = true
+            bird.physicsBody?.applyImpulse(CGVector(dx: 0.0, dy: 10.0))
+        } else {
+            gameLabel.removeFromParent()
+            startLabel.removeFromParent()
+            setPhysics()
+            didStartGame = true
         }
+    }
+    
+    // MARK: - Functions
+    
+    func setPhysics() {
+        let birdPhysicsBody = SKPhysicsBody(rectangleOf: bird.frame.size)
+        birdPhysicsBody.isDynamic = true
+        birdPhysicsBody.affectedByGravity = true
+        birdPhysicsBody.restitution = 0
+        bird.physicsBody = birdPhysicsBody
         
-        // Create shape node to use during mouse interaction
-        let w = (self.size.width + self.size.height) * 0.05
-        self.spinnyNode = SKShapeNode.init(rectOf: CGSize.init(width: w, height: w), cornerRadius: w * 0.3)
+        let floor = SKSpriteNode(color: .clear, size: CGSize(width: (self.scene?.size.width)!, height: 130.0))
+        floor.position = CGPoint(x: 0, y: -((self.scene?.size.height)! / 2))
+        floor.zPosition = 0
         
-        if let spinnyNode = self.spinnyNode {
-            spinnyNode.lineWidth = 2.5
+        let floorPhysicsBody = SKPhysicsBody(rectangleOf: floor.frame.size)
+        floorPhysicsBody.isDynamic = false
+        floor.physicsBody = floorPhysicsBody
+        
+        let ceiling = SKSpriteNode(color: .clear, size: CGSize(width: (self.scene?.size.width)!, height: 130.0))
+        ceiling.position = CGPoint(x: 0, y: ((self.scene?.size.height)! / 2))
+        ceiling.zPosition = 0
+        
+        let ceilingPhysicsBody = SKPhysicsBody(rectangleOf: ceiling.frame.size)
+        ceilingPhysicsBody.isDynamic = false
+        ceiling.physicsBody = ceilingPhysicsBody
+        
+        physicsWorld.gravity = CGVector(dx: 0, dy: -4)
+        
+        addChild(floor)
+        addChild(ceiling)
+    }
+    
+    func createBackground() {
+        for index in 0...3 {
+            let background = SKSpriteNode(imageNamed: "Background")
+            background.name = "Background"
             
-            spinnyNode.run(SKAction.repeatForever(SKAction.rotate(byAngle: CGFloat(Double.pi), duration: 1)))
-            spinnyNode.run(SKAction.sequence([SKAction.wait(forDuration: 0.5),
-                                              SKAction.fadeOut(withDuration: 0.5),
-                                              SKAction.removeFromParent()]))
+            let backgroundSize = CGSize(width: (self.scene?.size.width)!, height: (self.scene?.size.height)!)
+            background.size = backgroundSize
+            
+            let backgroundPosition = CGPoint(x: (CGFloat(index) * (self.scene?.size.width)!), y: 0)
+            background.position = backgroundPosition
+            
+            addChild(background)
         }
     }
     
-    
-    func touchDown(atPoint pos : CGPoint) {
-        if let n = self.spinnyNode?.copy() as! SKShapeNode? {
-            n.position = pos
-            n.strokeColor = SKColor.green
-            self.addChild(n)
+    func createFloor() {
+        for index in 0...3 {
+            let floor = SKSpriteNode(imageNamed: "Floor")
+            floor.name = "Floor"
+            
+            let floorSize = CGSize(width: (self.scene?.size.width)!, height: (self.scene?.size.height)!)
+            floor.size = floorSize
+            
+            let floorPosition = CGPoint(x: (CGFloat(index) * (self.scene?.size.width)!), y: 0)
+            floor.position = floorPosition
+            floor.zPosition = 0.9
+            
+            addChild(floor)
         }
     }
     
-    func touchMoved(toPoint pos : CGPoint) {
-        if let n = self.spinnyNode?.copy() as! SKShapeNode? {
-            n.position = pos
-            n.strokeColor = SKColor.blue
-            self.addChild(n)
-        }
-    }
-    
-    func touchUp(atPoint pos : CGPoint) {
-        if let n = self.spinnyNode?.copy() as! SKShapeNode? {
-            n.position = pos
-            n.strokeColor = SKColor.red
-            self.addChild(n)
-        }
-    }
-    
-    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
-        if let label = self.label {
-            label.run(SKAction.init(named: "Pulse")!, withKey: "fadeInOut")
+    func createBird() {
+        let birdAnimatedAtlas = SKTextureAtlas(named: "Bird")
+        var flyFrames: [SKTexture] = []
+        
+        let numImages = birdAnimatedAtlas.textureNames.count
+        for i in 1...numImages {
+            let birdTextureName = "Bird\(i)"
+            flyFrames.append(birdAnimatedAtlas.textureNamed(birdTextureName))
         }
         
-        for t in touches { self.touchDown(atPoint: t.location(in: self)) }
+        birdFlyingFrames = flyFrames
+        
+        let firstFrameTexture = birdFlyingFrames[0]
+        bird = SKSpriteNode(texture: firstFrameTexture)
+        
+        let birdSize = CGSize(width: 35, height: 35)
+        bird.size = birdSize
+        
+        let birdPosition = CGPoint(x: -((self.scene?.size.width)! / 2) * 0.7, y: 0)
+        bird.position = birdPosition
+        bird.zPosition = 1
+        addChild(bird)
     }
     
-    override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
-        for t in touches { self.touchMoved(toPoint: t.location(in: self)) }
+    func animateBird() {
+        bird.run(SKAction.repeatForever(SKAction.animate(with: birdFlyingFrames, timePerFrame: 0.1, resize: false, restore: true)),withKey: "FlyingInPlaceBird")
     }
     
-    override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
-        for t in touches { self.touchUp(atPoint: t.location(in: self)) }
+    func createLabel() {
+        gameLabel.text = "Almost FlappyBird"
+        startLabel.text = "Tap to start"
+
+        gameLabel.fontSize = 40
+        startLabel.fontSize = 25
+        
+        let gamePosition = CGPoint(x: 0, y: 60)
+        gameLabel.position = gamePosition
+        gameLabel.zPosition = 1
+        
+        let startPosition = CGPoint(x: 0, y: 0)
+        startLabel.position = startPosition
+        startLabel.zPosition = 1
+        
+        addChild(gameLabel)
+        addChild(startLabel)
     }
     
-    override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
-        for t in touches { self.touchUp(atPoint: t.location(in: self)) }
+    func createTopPipe(yPosition: Int) {
+        let topPipe = SKSpriteNode(imageNamed: "Pipe")
+        topPipe.name = "TopPipe"
+        
+        let pipeSize = CGSize(width: 83, height: 628)
+        topPipe.size = pipeSize
+        
+        topPipe.anchorPoint = CGPoint(x: 0.5, y: 0.5)
+        
+        let y = CGFloat(yPosition)
+        let pipePosition = CGPoint(x: ((self.scene?.size.width)!)/2 + 42, y: y)
+        topPipe.position = pipePosition
+        topPipe.zPosition = 0.8
+        
+        addChild(topPipe)
     }
     
+    func createBottomPipe(yPosition: Int) {
+        let bottomPipe = SKSpriteNode(imageNamed: "Pipe")
+        bottomPipe.name = "BottomPipe"
+        
+        let pipeSize = CGSize(width: 83, height: 628)
+        bottomPipe.size = pipeSize
+        
+        bottomPipe.anchorPoint = CGPoint(x: 0.5, y: 0.5)
+        
+        bottomPipe.yScale = bottomPipe.yScale * -1
+        
+        let y = CGFloat(yPosition)
+        let pipePosition = CGPoint(x: ((self.scene?.size.width)!)/2 + 42, y: -y)
+        bottomPipe.position = pipePosition
+        bottomPipe.zPosition = 0.8
+        
+        addChild(bottomPipe)
+    }
+    
+    func moveGrounds() {
+        self.enumerateChildNodes(withName: "Background") { node, error in
+            node.position.x -= 2
+            if node.position.x < -((self.scene?.size.width)!) {
+                node.position.x += ((self.scene?.size.width)! * 3)
+            }
+        }
+        self.enumerateChildNodes(withName: "Floor") { node, error in
+            node.position.x -= 2
+            if node.position.x < -((self.scene?.size.width)!) {
+                node.position.x += ((self.scene?.size.width)! * 3)
+            }
+        }
+        self.enumerateChildNodes(withName: "TopPipe") { node, error in
+            node.position.x -= 2
+            if node.position.x < -((self.scene?.size.width)!) {
+                node.position.x += ((self.scene?.size.width)! * 3)
+            }
+        }
+        self.enumerateChildNodes(withName: "BottomPipe") { node, error in
+            node.position.x -= 2
+            if node.position.x < -((self.scene?.size.width)!) {
+                node.position.x += ((self.scene?.size.width)! * 3)
+            }
+        }
+    }
+    
+    // MARK: - Update
     
     override func update(_ currentTime: TimeInterval) {
         // Called before each frame is rendered
+        
+        if lastCurrentTime == -1 {
+            lastCurrentTime = currentTime
+        }
+        
+        let deltaTime = currentTime - lastCurrentTime
+       
+        
+        moveGrounds()
+        
+        if deltaTime > 2.5 {
+            let maxTop = (self.scene?.size.height)! - 80 - 200
+            let topValue = Int.random(in: 230..<Int(maxTop))
+            let bottomValue = Int(maxTop) + 200 - topValue
+            
+            createTopPipe(yPosition: topValue)
+            createBottomPipe(yPosition: bottomValue)
+            
+            lastCurrentTime = currentTime
+        }
+        
+        self.enumerateChildNodes(withName: "TopPipe") { node, error in
+            if node.position.x <= -((self.scene?.size.width)!)/2 - 42{
+                node.removeFromParent()
+            }
+        }
+        
+        self.enumerateChildNodes(withName: "BottomPipe") { node, error in
+            if node.position.x <= -((self.scene?.size.width)!)/2 - 42 {
+                node.removeFromParent()
+            }
+        }
     }
 }
+
