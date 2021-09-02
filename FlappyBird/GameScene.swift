@@ -8,7 +8,7 @@
 import SpriteKit
 import GameplayKit
 
-class GameScene: SKScene {
+class GameScene: SKScene, SKPhysicsContactDelegate {
     
     private var lastCurrentTime: Double = -1
     
@@ -25,6 +25,11 @@ class GameScene: SKScene {
     
     private var birdFlyingFrames: [SKTexture] = []
     
+    // MARK: - Collision
+    
+    let birdCategory: UInt32 = 1 << 2
+    let pipeCategory: UInt32 = 1 << 1
+    
     // MARK: - Init
     
     override func didMove(to view: SKView) {
@@ -39,6 +44,8 @@ class GameScene: SKScene {
         
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(jump))
         self.view?.addGestureRecognizer(tapGesture)
+        
+        physicsWorld.contactDelegate = self
         
     }
     
@@ -64,6 +71,10 @@ class GameScene: SKScene {
         birdPhysicsBody.isDynamic = true
         birdPhysicsBody.affectedByGravity = true
         birdPhysicsBody.restitution = 0
+        birdPhysicsBody.usesPreciseCollisionDetection = true
+        birdPhysicsBody.categoryBitMask = birdCategory
+        birdPhysicsBody.collisionBitMask = birdCategory | pipeCategory
+        birdPhysicsBody.contactTestBitMask = birdCategory | pipeCategory
         bird.physicsBody = birdPhysicsBody
         
         let floor = SKSpriteNode(color: .clear, size: CGSize(width: (self.scene?.size.width)!, height: 130.0))
@@ -86,6 +97,16 @@ class GameScene: SKScene {
         
         addChild(floor)
         addChild(ceiling)
+    }
+    
+    func didBegin(_ contact: SKPhysicsContact) {
+        print("didBegin")
+        
+        if (contact.bodyA.categoryBitMask == birdCategory) &&
+            (contact.bodyB.categoryBitMask == pipeCategory) {
+
+            print("Hit")
+        }
     }
     
     func createBackground() {
@@ -137,9 +158,10 @@ class GameScene: SKScene {
         let birdSize = CGSize(width: 35, height: 35)
         bird.size = birdSize
         
-        let birdPosition = CGPoint(x: -((self.scene?.size.width)! / 2) * 0.7, y: 0)
+        let birdPosition = CGPoint(x: -((self.scene?.size.width)! / 2) * 0.6, y: 0)
         bird.position = birdPosition
-        bird.zPosition = 1
+        bird.zPosition = 0.8
+        
         addChild(bird)
     }
     
@@ -173,6 +195,10 @@ class GameScene: SKScene {
         let pipeSize = CGSize(width: 83, height: 628)
         topPipe.size = pipeSize
         
+        topPipe.physicsBody = SKPhysicsBody(rectangleOf: topPipe.frame.size)
+        topPipe.physicsBody!.affectedByGravity = false
+        topPipe.physicsBody!.isDynamic = false
+        
         topPipe.anchorPoint = CGPoint(x: 0.5, y: 0.5)
         
         let y = CGFloat(yPosition)
@@ -189,6 +215,10 @@ class GameScene: SKScene {
         
         let pipeSize = CGSize(width: 83, height: 628)
         bottomPipe.size = pipeSize
+        
+        bottomPipe.physicsBody = SKPhysicsBody(rectangleOf: bottomPipe.frame.size)
+        bottomPipe.physicsBody!.affectedByGravity = false
+        bottomPipe.physicsBody!.isDynamic = false
         
         bottomPipe.anchorPoint = CGPoint(x: 0.5, y: 0.5)
         
@@ -229,6 +259,9 @@ class GameScene: SKScene {
         }
     }
     
+    
+    
+    
     // MARK: - Update
     
     override func update(_ currentTime: TimeInterval) {
@@ -252,6 +285,18 @@ class GameScene: SKScene {
             createBottomPipe(yPosition: bottomValue)
             
             lastCurrentTime = currentTime
+        }
+        
+        self.enumerateChildNodes(withName: "TopPipe") { node, error in
+            guard let body = node.physicsBody else { return }
+                body.usesPreciseCollisionDetection = true
+                body.categoryBitMask = self.pipeCategory
+        }
+
+        self.enumerateChildNodes(withName: "BottomPipe") { node, error in
+            guard let body = node.physicsBody else { return }
+                body.usesPreciseCollisionDetection = true
+                body.categoryBitMask = self.pipeCategory
         }
         
         self.enumerateChildNodes(withName: "TopPipe") { node, error in
