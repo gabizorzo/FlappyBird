@@ -10,16 +10,29 @@ import GameplayKit
 
 class GameScene: SKScene, SKPhysicsContactDelegate {
     
+    // MARK: - Time
     private var lastCurrentTime: Double = -1
     
+    // MARK: - Game
+    
     private var didStartGame: Bool = false
+    private var score: Int = 0
+    private var outsidePipe: Bool = true
+    private var isGameOver: Bool = false
     
     // MARK: - Nodes
     
     private var background: SKSpriteNode = SKSpriteNode()
     private var bird: SKSpriteNode = SKSpriteNode()
+    
+    // MARK: - Labels Nodes
+    
     private var startLabel: SKLabelNode = SKLabelNode()
     private var gameLabel: SKLabelNode = SKLabelNode()
+    private var scoreLabel: SKLabelNode = SKLabelNode()
+    private var gameOverLabel: SKLabelNode = SKLabelNode()
+    private var yourScoreLabel: SKLabelNode = SKLabelNode()
+    private var restartLabel: SKLabelNode = SKLabelNode()
     
     // MARK: - Animation
     
@@ -43,7 +56,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         createFloor()
         createLabel()
         
-        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(jump))
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(tap))
         self.view?.addGestureRecognizer(tapGesture)
         
         physicsWorld.contactDelegate = self
@@ -52,20 +65,27 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     
     // MARK: - Handlers
     
-    @objc func jump() {
+    @objc func tap() {
         if didStartGame {
-            bird.physicsBody?.isDynamic = false
-            bird.physicsBody?.isDynamic = true
-            bird.physicsBody?.applyImpulse(CGVector(dx: 0.0, dy: 10.0))
+            jump()
+        } else if isGameOver {
+            // todo
         } else {
             gameLabel.removeFromParent()
             startLabel.removeFromParent()
+            createScoreLabel()
             setPhysics()
             didStartGame = true
         }
     }
     
-    // MARK: - Functions
+    func jump() {
+        bird.physicsBody?.isDynamic = false
+        bird.physicsBody?.isDynamic = true
+        bird.physicsBody?.applyImpulse(CGVector(dx: 0.0, dy: 10.0))
+    }
+    
+    // MARK: - Physics
     
     func setPhysics() {
         let birdPhysicsBody = SKPhysicsBody(rectangleOf: bird.frame.size)
@@ -103,17 +123,19 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         addChild(ceiling)
     }
     
+    // MARK: - Collision
+    
     func didBegin(_ contact: SKPhysicsContact) {
-        print("didBegin")
-        
         if (contact.bodyA.categoryBitMask == birdCategory) &&
             (contact.bodyB.categoryBitMask == pipeCategory) {
-            print("Hit pipe")
+            gameOver()
         } else if (contact.bodyA.categoryBitMask == birdCategory) &&
                     (contact.bodyB.categoryBitMask == floorCategory) {
-            print("Hit floor")
+            gameOver()
         }
     }
+    
+    // MARK: - Background and Floor
     
     func createBackground() {
         for index in 0...3 {
@@ -146,6 +168,23 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         }
     }
     
+    func moveGrounds() {
+        self.enumerateChildNodes(withName: "Background") { node, error in
+            node.position.x -= 2
+            if node.position.x < -((self.scene?.size.width)!) {
+                node.position.x += ((self.scene?.size.width)! * 3)
+            }
+        }
+        self.enumerateChildNodes(withName: "Floor") { node, error in
+            node.position.x -= 2
+            if node.position.x < -((self.scene?.size.width)!) {
+                node.position.x += ((self.scene?.size.width)! * 3)
+            }
+        }
+    }
+    
+    // MARK: - Bird
+    
     func createBird() {
         let birdAnimatedAtlas = SKTextureAtlas(named: "Bird")
         var flyFrames: [SKTexture] = []
@@ -175,8 +214,10 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         bird.run(SKAction.repeatForever(SKAction.animate(with: birdFlyingFrames, timePerFrame: 0.1, resize: false, restore: true)),withKey: "FlyingInPlaceBird")
     }
     
+    // MARK: - Labels
+    
     func createLabel() {
-        gameLabel.text = "Almost FlappyBird"
+        gameLabel.text = "FlappyBird"
         startLabel.text = "Tap to start"
         
         gameLabel.fontSize = 40
@@ -193,6 +234,45 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         addChild(gameLabel)
         addChild(startLabel)
     }
+    
+    func createScoreLabel() {
+        scoreLabel.text = "0"
+        scoreLabel.fontSize = 35
+        
+        let scorePosition = CGPoint(x: 0, y: 120)
+        scoreLabel.position = scorePosition
+        scoreLabel.zPosition = 1
+        
+        addChild(scoreLabel)
+    }
+    
+    func createGameOverLabel() {
+        gameOverLabel.text = "Game Over!"
+        yourScoreLabel.text = "Your score was:"
+        restartLabel.text = "Tap to restart"
+        
+        gameOverLabel.fontSize = 35
+        yourScoreLabel.fontSize = 30
+        restartLabel.fontSize = 25
+        
+        let gameOverPosition = CGPoint(x: 0, y: 120)
+        gameOverLabel.position = gameOverPosition
+        gameOverLabel.zPosition = 1
+        
+        let yourScorePosition = CGPoint(x: 0, y: 60)
+        yourScoreLabel.position = yourScorePosition
+        yourScoreLabel.zPosition = 1
+        
+        let restartPosition = CGPoint(x: 0, y: -40)
+        restartLabel.position = restartPosition
+        restartLabel.zPosition = 1
+        
+        addChild(gameOverLabel)
+        addChild(yourScoreLabel)
+        addChild(restartLabel)
+    }
+    
+    // MARK: - Pipes
     
     func createTopPipe(yPosition: Int) {
         let topPipe = SKSpriteNode(imageNamed: "Pipe")
@@ -238,22 +318,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         addChild(bottomPipe)
     }
     
-    func moveGrounds() {
-        self.enumerateChildNodes(withName: "Background") { node, error in
-            node.position.x -= 2
-            if node.position.x < -((self.scene?.size.width)!) {
-                node.position.x += ((self.scene?.size.width)! * 3)
-            }
-        }
-        self.enumerateChildNodes(withName: "Floor") { node, error in
-            node.position.x -= 2
-            if node.position.x < -((self.scene?.size.width)!) {
-                node.position.x += ((self.scene?.size.width)! * 3)
-            }
-        }
-        //        movePipes()
-    }
-    
     func movePipes() {
         self.enumerateChildNodes(withName: "TopPipe") { node, error in
             node.position.x -= 2
@@ -270,7 +334,58 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
     }
     
+    func setPipesPhysics() {
+        self.enumerateChildNodes(withName: "TopPipe") { node, error in
+            guard let body = node.physicsBody else { return }
+            body.usesPreciseCollisionDetection = true
+            body.categoryBitMask = self.pipeCategory
+        }
+        
+        self.enumerateChildNodes(withName: "BottomPipe") { node, error in
+            guard let body = node.physicsBody else { return }
+            body.usesPreciseCollisionDetection = true
+            body.categoryBitMask = self.pipeCategory
+        }
+    }
     
+    func removePipes() {
+        self.enumerateChildNodes(withName: "TopPipe") { node, error in
+            if node.position.x <= -((self.scene?.size.width)!)/2 - 42{
+                node.removeFromParent()
+            }
+        }
+        
+        self.enumerateChildNodes(withName: "BottomPipe") { node, error in
+            if node.position.x <= -((self.scene?.size.width)!)/2 - 42 {
+                node.removeFromParent()
+            }
+        }
+    }
+    
+    // MARK: - Score
+    
+    func updateScore() {
+        self.enumerateChildNodes(withName: "TopPipe") { node, error in
+            if self.outsidePipe {
+                if node.position.x - 41 <= self.bird.position.x && self.bird.position.x <= node.position.x + 41 {
+                    self.outsidePipe = false
+                }
+            } else if self.bird.position.x >= node.position.x + 41 {
+                self.score += 1
+                self.scoreLabel.text = "\(self.score)"
+                self.outsidePipe = true
+            }
+        }
+    }
+    
+    // MARK: - Game Over
+    
+    func gameOver() {
+        scene?.view?.isPaused = true
+        createGameOverLabel()
+        self.scoreLabel.position = CGPoint(x: 0, y: 0)
+        isGameOver = true
+    }
     
     
     // MARK: - Update
@@ -283,7 +398,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         }
         
         let deltaTime = currentTime - lastCurrentTime
-        
         
         moveGrounds()
         
@@ -302,30 +416,12 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             movePipes()
         }
         
+        setPipesPhysics()
         
-        self.enumerateChildNodes(withName: "TopPipe") { node, error in
-            guard let body = node.physicsBody else { return }
-            body.usesPreciseCollisionDetection = true
-            body.categoryBitMask = self.pipeCategory
-        }
+        removePipes()
         
-        self.enumerateChildNodes(withName: "BottomPipe") { node, error in
-            guard let body = node.physicsBody else { return }
-            body.usesPreciseCollisionDetection = true
-            body.categoryBitMask = self.pipeCategory
-        }
-        
-        self.enumerateChildNodes(withName: "TopPipe") { node, error in
-            if node.position.x <= -((self.scene?.size.width)!)/2 - 42{
-                node.removeFromParent()
-            }
-        }
-        
-        self.enumerateChildNodes(withName: "BottomPipe") { node, error in
-            if node.position.x <= -((self.scene?.size.width)!)/2 - 42 {
-                node.removeFromParent()
-            }
-        }
+        updateScore()
+
     }
 }
 
