@@ -10,6 +10,10 @@ import GameplayKit
 
 class GameScene: SKScene, SKPhysicsContactDelegate {
     
+    // MARK: - User defaults
+    
+    
+    
     // MARK: - Time
     private var lastCurrentTime: Double = -1
     
@@ -68,8 +72,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     @objc func tap() {
         if didStartGame {
             jump()
-        } else if isGameOver {
-            // todo
         } else {
             gameLabel.removeFromParent()
             startLabel.removeFromParent()
@@ -78,6 +80,23 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             didStartGame = true
         }
     }
+    
+    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+        if isGameOver {
+            // todo
+            
+            print("entrou")
+            
+            let newScene = GameScene(size: self.size)
+                newScene.scaleMode = self.scaleMode
+                let animation = SKTransition.fade(withDuration: 1.0)
+                self.view?.presentScene(newScene, transition: animation)
+                self.view?.isPaused = false
+            
+            isGameOver = false
+        }
+    }
+    
     
     func jump() {
         bird.physicsBody?.isDynamic = false
@@ -218,7 +237,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     
     func createLabel() {
         gameLabel.text = "FlappyBird"
+        gameLabel.fontName = "HelveticaNeue-Semibold"
         startLabel.text = "Tap to start"
+        startLabel.fontName = "HelveticaNeue-Light"
         
         gameLabel.fontSize = 40
         startLabel.fontSize = 25
@@ -237,6 +258,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     
     func createScoreLabel() {
         scoreLabel.text = "0"
+        scoreLabel.fontName = "HelveticaNeue-Semibold"
         scoreLabel.fontSize = 35
         
         let scorePosition = CGPoint(x: 0, y: 120)
@@ -248,8 +270,11 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     
     func createGameOverLabel() {
         gameOverLabel.text = "Game Over!"
+        gameOverLabel.fontName = "HelveticaNeue-Semibold"
         yourScoreLabel.text = "Your score was:"
+        yourScoreLabel.fontName = "HelveticaNeue-Regular"
         restartLabel.text = "Tap to restart"
+        restartLabel.fontName = "HelveticaNeue-Light"
         
         gameOverLabel.fontSize = 35
         yourScoreLabel.fontSize = 30
@@ -381,12 +406,12 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     // MARK: - Game Over
     
     func gameOver() {
-        scene?.view?.isPaused = true
+        print("gameover")
         createGameOverLabel()
         self.scoreLabel.position = CGPoint(x: 0, y: 0)
         isGameOver = true
+        scene?.view?.isPaused = true
     }
-    
     
     // MARK: - Update
     
