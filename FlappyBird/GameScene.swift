@@ -9,11 +9,7 @@ import SpriteKit
 import GameplayKit
 
 class GameScene: SKScene, SKPhysicsContactDelegate {
-    
-    // MARK: - User defaults
-    
-    
-    
+
     // MARK: - Time
     private var lastCurrentTime: Double = -1
     
@@ -37,6 +33,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     private var gameOverLabel: SKLabelNode = SKLabelNode()
     private var yourScoreLabel: SKLabelNode = SKLabelNode()
     private var restartLabel: SKLabelNode = SKLabelNode()
+    private var highScoreLabel: SKLabelNode = SKLabelNode()
+    private var yourHighScoreLabel: SKLabelNode = SKLabelNode()
     
     // MARK: - Animation
     
@@ -83,10 +81,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         if isGameOver {
-            // todo
-            
-            print("entrou")
-            
             let newScene = GameScene(size: self.size)
                 newScene.scaleMode = self.scaleMode
                 let animation = SKTransition.fade(withDuration: 1.0)
@@ -236,13 +230,12 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     // MARK: - Labels
     
     func createLabel() {
-        gameLabel.text = "FlappyBird"
-        gameLabel.fontName = "HelveticaNeue-Semibold"
-        startLabel.text = "Tap to start"
-        startLabel.fontName = "HelveticaNeue-Light"
-        
-        gameLabel.fontSize = 40
-        startLabel.fontSize = 25
+        gameLabel.attributedText = NSAttributedString(string: "FlappyBird",
+                                                      attributes: [.font: UIFont.systemFont(ofSize: 40, weight: .semibold),
+                                                                   .foregroundColor: UIColor.white])
+        startLabel.attributedText = NSAttributedString(string: "Tap to start",
+                                                       attributes: [.font: UIFont.systemFont(ofSize: 25, weight: .light),
+                                                                   .foregroundColor: UIColor.white])
         
         let gamePosition = CGPoint(x: 0, y: 60)
         gameLabel.position = gamePosition
@@ -257,9 +250,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     }
     
     func createScoreLabel() {
-        scoreLabel.text = "0"
-        scoreLabel.fontName = "HelveticaNeue-Semibold"
-        scoreLabel.fontSize = 35
+        scoreLabel.attributedText = NSAttributedString(string: "0",
+                                                       attributes: [.font: UIFont.systemFont(ofSize: 35, weight: .semibold),
+                                                                   .foregroundColor: UIColor.white])
         
         let scorePosition = CGPoint(x: 0, y: 120)
         scoreLabel.position = scorePosition
@@ -269,16 +262,25 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     }
     
     func createGameOverLabel() {
-        gameOverLabel.text = "Game Over!"
-        gameOverLabel.fontName = "HelveticaNeue-Semibold"
-        yourScoreLabel.text = "Your score was:"
-        yourScoreLabel.fontName = "HelveticaNeue-Regular"
-        restartLabel.text = "Tap to restart"
-        restartLabel.fontName = "HelveticaNeue-Light"
+        gameOverLabel.attributedText = NSAttributedString(string: "Game Over!",
+                                                          attributes: [.font: UIFont.systemFont(ofSize: 35, weight: .regular),
+                                                                      .foregroundColor: UIColor.white])
         
-        gameOverLabel.fontSize = 35
-        yourScoreLabel.fontSize = 30
-        restartLabel.fontSize = 25
+        yourScoreLabel.attributedText = NSAttributedString(string: "Your score was:",
+                                                           attributes: [.font: UIFont.systemFont(ofSize: 30, weight: .regular),
+                                                                       .foregroundColor: UIColor.white])
+        
+        yourHighScoreLabel.attributedText = NSAttributedString(string: "The high score is:",
+                                                              attributes: [.font: UIFont.systemFont(ofSize: 30, weight: .regular),
+                                                                          .foregroundColor: UIColor.white])
+        highScoreLabel.attributedText = NSAttributedString(string: "\(GameDataBase.standard.getHighScore())",
+                                                           attributes: [.font: UIFont.systemFont(ofSize: 35, weight: .semibold),
+                                                                       .foregroundColor: UIColor.white])
+        
+        restartLabel.attributedText = NSAttributedString(string: "Tap to restart",
+                                                           attributes: [.font: UIFont.systemFont(ofSize: 25, weight: .light),
+                                                                       .foregroundColor: UIColor.white])
+        
         
         let gameOverPosition = CGPoint(x: 0, y: 120)
         gameOverLabel.position = gameOverPosition
@@ -288,12 +290,24 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         yourScoreLabel.position = yourScorePosition
         yourScoreLabel.zPosition = 1
         
-        let restartPosition = CGPoint(x: 0, y: -40)
+        self.scoreLabel.position = CGPoint(x: 0, y: 20)
+        
+        let yourHScorePosition = CGPoint(x: 0, y: -20)
+        yourHighScoreLabel.position = yourHScorePosition
+        yourHighScoreLabel.zPosition = 1
+        
+        let highScorePosition = CGPoint(x: 0, y: -60)
+        highScoreLabel.position = highScorePosition
+        highScoreLabel.zPosition = 1
+        
+        let restartPosition = CGPoint(x: 0, y: -120)
         restartLabel.position = restartPosition
         restartLabel.zPosition = 1
         
         addChild(gameOverLabel)
         addChild(yourScoreLabel)
+        addChild(yourHighScoreLabel)
+        addChild(highScoreLabel)
         addChild(restartLabel)
     }
     
@@ -397,7 +411,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
                 }
             } else if self.bird.position.x >= node.position.x + 41 {
                 self.score += 1
-                self.scoreLabel.text = "\(self.score)"
+                self.scoreLabel.attributedText = NSAttributedString(string: "\(self.score)",
+                                                                    attributes: [.font: UIFont.systemFont(ofSize: 35, weight: .semibold),
+                                                                                .foregroundColor: UIColor.white])
                 self.outsidePipe = true
             }
         }
@@ -406,11 +422,12 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     // MARK: - Game Over
     
     func gameOver() {
-        print("gameover")
+        GameDataBase.standard.setHighScore(newHighScore: score)
+        
         createGameOverLabel()
-        self.scoreLabel.position = CGPoint(x: 0, y: 0)
         isGameOver = true
         scene?.view?.isPaused = true
+        sleep(1)
     }
     
     // MARK: - Update
