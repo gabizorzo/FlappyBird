@@ -15,7 +15,7 @@
 		0960904426DFF8610035018D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 0960904326DFF8610035018D /* Assets.xcassets */; };
 		0960904F26DFF8610035018D /* FlappyBirdTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0960904E26DFF8610035018D /* FlappyBirdTests.swift */; };
 		0960905A26DFF8610035018D /* FlappyBirdUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0960905926DFF8610035018D /* FlappyBirdUITests.swift */; };
-		0960906826E047CD0035018D /* Bird.atlas in Resources */ = {isa = PBXBuildFile; fileRef = 0960906726E047CD0035018D /* Bird.atlas */; };
+		09AC89FE26E652EB001939B4 /* Bird.atlas in Resources */ = {isa = PBXBuildFile; fileRef = 09AC89FD26E652EB001939B4 /* Bird.atlas */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -50,7 +50,7 @@
 		0960905526DFF8610035018D /* FlappyBirdUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FlappyBirdUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		0960905926DFF8610035018D /* FlappyBirdUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlappyBirdUITests.swift; sourceTree = "<group>"; };
 		0960905B26DFF8610035018D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		0960906726E047CD0035018D /* Bird.atlas */ = {isa = PBXFileReference; lastKnownFileType = folder.skatlas; path = Bird.atlas; sourceTree = "<group>"; };
+		09AC89FD26E652EB001939B4 /* Bird.atlas */ = {isa = PBXFileReference; lastKnownFileType = folder.skatlas; path = Bird.atlas; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -101,7 +101,7 @@
 		0960903526DFF85E0035018D /* FlappyBird */ = {
 			isa = PBXGroup;
 			children = (
-				0960906726E047CD0035018D /* Bird.atlas */,
+				09AC89FD26E652EB001939B4 /* Bird.atlas */,
 				0960903626DFF85E0035018D /* AppDelegate.swift */,
 				0960903C26DFF85E0035018D /* GameScene.swift */,
 				09134F1526E28E9D0075F93B /* GameDataBase.swift */,
@@ -234,7 +234,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				0960906826E047CD0035018D /* Bird.atlas in Resources */,
+				09AC89FE26E652EB001939B4 /* Bird.atlas in Resources */,
 				0960904226DFF85E0035018D /* Main.storyboard in Resources */,
 				0960904426DFF8610035018D /* Assets.xcassets in Resources */,
 			);
@@ -362,7 +362,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 14.5;
+				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -417,7 +417,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 14.5;
+				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = iphoneos;
@@ -433,16 +433,18 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_TEAM = 4A7DB99C3F;
 				INFOPLIST_FILE = FlappyBird/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.zorzo.FlappyBird;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.zorzo.flappychicken;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Debug;
 		};
@@ -452,16 +454,18 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_TEAM = 4A7DB99C3F;
 				INFOPLIST_FILE = FlappyBird/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.zorzo.FlappyBird;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.zorzo.flappychicken;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Release;
 		};

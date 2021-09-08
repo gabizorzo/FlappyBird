@@ -35,6 +35,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     private var restartLabel: SKLabelNode = SKLabelNode()
     private var highScoreLabel: SKLabelNode = SKLabelNode()
     private var yourHighScoreLabel: SKLabelNode = SKLabelNode()
+    private var hsLabel: SKLabelNode = SKLabelNode()
+    private var hsTextLabel: SKLabelNode = SKLabelNode()
     
     // MARK: - Animation
     
@@ -57,6 +59,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         animateBird()
         createFloor()
         createLabel()
+        createHighScoreLabel()
         
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(tap))
         self.view?.addGestureRecognizer(tapGesture)
@@ -73,6 +76,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         } else {
             gameLabel.removeFromParent()
             startLabel.removeFromParent()
+            hsLabel.removeFromParent()
+            hsTextLabel.removeFromParent()
             createScoreLabel()
             setPhysics()
             didStartGame = true
@@ -95,7 +100,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     func jump() {
         bird.physicsBody?.isDynamic = false
         bird.physicsBody?.isDynamic = true
-        bird.physicsBody?.applyImpulse(CGVector(dx: 0.0, dy: 10.0))
+        bird.physicsBody?.applyImpulse(CGVector(dx: 0.0, dy: 15.0))
     }
     
     // MARK: - Physics
@@ -213,7 +218,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         let firstFrameTexture = birdFlyingFrames[0]
         bird = SKSpriteNode(texture: firstFrameTexture)
         
-        let birdSize = CGSize(width: 35, height: 35)
+        let birdSize = CGSize(width: 40, height: 40)
         bird.size = birdSize
         
         let birdPosition = CGPoint(x: -((self.scene?.size.width)! / 2) * 0.6, y: 0)
@@ -230,7 +235,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     // MARK: - Labels
     
     func createLabel() {
-        gameLabel.attributedText = NSAttributedString(string: "FlappyBird",
+        gameLabel.attributedText = NSAttributedString(string: "FlappyChicken",
                                                       attributes: [.font: UIFont.systemFont(ofSize: 40, weight: .semibold),
                                                                    .foregroundColor: UIColor.white])
         startLabel.attributedText = NSAttributedString(string: "Tap to start",
@@ -259,6 +264,26 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         scoreLabel.zPosition = 1
         
         addChild(scoreLabel)
+    }
+    
+    func createHighScoreLabel() {
+        hsTextLabel.attributedText = NSAttributedString(string: "High score:",
+                                                        attributes: [.font: UIFont.systemFont(ofSize: 20, weight: .semibold),
+                                                                    .foregroundColor: UIColor.white])
+        hsLabel.attributedText = NSAttributedString(string: "\(GameDataBase.standard.getHighScore())",
+                                                    attributes: [.font: UIFont.systemFont(ofSize: 20, weight: .bold),
+                                                                .foregroundColor: UIColor.white])
+        
+        let hsTextPosition = CGPoint(x: -(self.scene?.size.width)!/2 + 70, y: (self.scene?.size.height)!/2 * 0.85)
+        hsTextLabel.position = hsTextPosition
+        hsTextLabel.zPosition = 1
+        
+        let hsPosition = CGPoint(x: -(self.scene?.size.width)!/2 + 70, y: (self.scene?.size.height)!/2 * 0.77)
+        hsLabel.position = hsPosition
+        hsLabel.zPosition = 1
+        
+        addChild(hsTextLabel)
+        addChild(hsLabel)
     }
     
     func createGameOverLabel() {
@@ -313,11 +338,13 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     
     // MARK: - Pipes
     
-    func createTopPipe(yPosition: Int) {
+    func createTopPipe(sizeTop: Int) {
         let topPipe = SKSpriteNode(imageNamed: "Pipe")
         topPipe.name = "TopPipe"
         
-        let pipeSize = CGSize(width: 83, height: 628)
+        let pipeHeight = (self.scene?.size.height)!
+        
+        let pipeSize = CGSize(width: 83, height: pipeHeight)
         topPipe.size = pipeSize
         
         topPipe.physicsBody = SKPhysicsBody(rectangleOf: topPipe.frame.size)
@@ -326,19 +353,23 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         topPipe.anchorPoint = CGPoint(x: 0.5, y: 0.5)
         
-        let y = CGFloat(yPosition)
-        let pipePosition = CGPoint(x: ((self.scene?.size.width)!)/2 + 42, y: y)
-        topPipe.position = pipePosition
+        let yInf = Int((self.scene?.size.height)!)/2 - sizeTop
+        let yPipe = yInf + Int(pipeHeight/2)
+        let xPipe = (self.scene?.size.width)!/2 + 42
+        topPipe.position.x = xPipe
+        topPipe.position.y = CGFloat(yPipe)
         topPipe.zPosition = 0.8
         
         addChild(topPipe)
     }
     
-    func createBottomPipe(yPosition: Int) {
+    func createBottomPipe(sizeBottom: Int) {
         let bottomPipe = SKSpriteNode(imageNamed: "Pipe")
         bottomPipe.name = "BottomPipe"
         
-        let pipeSize = CGSize(width: 83, height: 628)
+        let pipeHeight = (self.scene?.size.height)!
+        
+        let pipeSize = CGSize(width: 83, height: pipeHeight)
         bottomPipe.size = pipeSize
         
         bottomPipe.physicsBody = SKPhysicsBody(rectangleOf: bottomPipe.frame.size)
@@ -349,9 +380,11 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         bottomPipe.yScale = bottomPipe.yScale * -1
         
-        let y = CGFloat(yPosition)
-        let pipePosition = CGPoint(x: ((self.scene?.size.width)!)/2 + 42, y: -y)
-        bottomPipe.position = pipePosition
+        let yInf = -Int((self.scene?.size.height)!)/2 + sizeBottom
+        let yPipe = yInf - Int(pipeHeight/2)
+        let xPipe = (self.scene?.size.width)!/2 + 42
+        bottomPipe.position.x = xPipe
+        bottomPipe.position.y = CGFloat(yPipe)
         bottomPipe.zPosition = 0.8
         
         addChild(bottomPipe)
@@ -446,12 +479,12 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         if didStartGame {
             
             if deltaTime > 2.5 {
-                let maxTop = (self.scene?.size.height)! - 80 - 200
-                let topValue = Int.random(in: 230..<Int(maxTop))
-                let bottomValue = Int(maxTop) + 200 - topValue
+                let maxTop = (self.scene?.size.height)! - self.bird.size.height*3.5 - (self.scene?.size.height)!*0.25
+                let topValue = Int.random(in: Int((self.scene?.size.height)!*0.25)..<Int(maxTop))
+                let bottomValue = Int(maxTop) - topValue + Int((self.scene?.size.height)!*0.25)
                 
-                createTopPipe(yPosition: topValue)
-                createBottomPipe(yPosition: bottomValue)
+                createTopPipe(sizeTop: topValue)
+                createBottomPipe(sizeBottom: bottomValue)
                 
                 lastCurrentTime = currentTime
             }
