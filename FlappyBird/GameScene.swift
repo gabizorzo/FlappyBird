@@ -116,7 +116,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         birdPhysicsBody.contactTestBitMask = birdCategory | pipeCategory | floorCategory
         bird.physicsBody = birdPhysicsBody
         
-        let floor = SKSpriteNode(color: .clear, size: CGSize(width: (self.scene?.size.width)!, height: 130.0))
+        let floor = SKSpriteNode(color: .clear, size: CGSize(width: (self.scene?.size.width)!, height: (self.scene?.size.height)!*0.15))
         floor.position = CGPoint(x: 0, y: -((self.scene?.size.height)! / 2))
         floor.zPosition = 0
         
@@ -127,7 +127,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         floorPhysicsBody.categoryBitMask = floorCategory
         floor.physicsBody = floorPhysicsBody
         
-        let ceiling = SKSpriteNode(color: .clear, size: CGSize(width: (self.scene?.size.width)!, height: 130.0))
+        let ceiling = SKSpriteNode(color: .clear, size: CGSize(width: (self.scene?.size.width)!, height: (self.scene?.size.height)!*0.15))
         ceiling.position = CGPoint(x: 0, y: ((self.scene?.size.height)! / 2))
         ceiling.zPosition = 0
         
@@ -479,9 +479,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         if didStartGame {
             
             if deltaTime > 2.5 {
-                let maxTop = (self.scene?.size.height)! - self.bird.size.height*3.5 - (self.scene?.size.height)!*0.25
-                let topValue = Int.random(in: Int((self.scene?.size.height)!*0.25)..<Int(maxTop))
-                let bottomValue = Int(maxTop) - topValue + Int((self.scene?.size.height)!*0.25)
+                let maxTop = (self.scene?.size.height)! - self.bird.size.height*3.5 - (self.scene?.size.height)!*0.15
+                let topValue = Int.random(in: Int((self.scene?.size.height)!*0.15)..<Int(maxTop))
+                let bottomValue = Int(maxTop) - topValue + Int((self.scene?.size.height)!*0.15)
                 
                 createTopPipe(sizeTop: topValue)
                 createBottomPipe(sizeBottom: bottomValue)
