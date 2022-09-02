@@ -153,6 +153,30 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         }
     }
     
+    // MARK: - Speed
+    func defineSpeed() -> CGFloat {
+        if score > 10 {
+            return 4.0
+        } else if score > 6 {
+            return 3.5
+        } else if score > 3 {
+            return 3.0
+        }
+        return 2.0
+    }
+    
+    // MARK: - Time
+    func defineTime() -> CGFloat {
+        if score > 10 {
+            return 1.6
+        } else if score > 6 {
+            return 1.7
+        } else if score > 3 {
+            return 2.25
+        }
+        return 2.5
+    }
+    
     // MARK: - Background and Floor
     
     func createBackground() {
@@ -188,13 +212,13 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     
     func moveGrounds() {
         self.enumerateChildNodes(withName: "Background") { node, error in
-            node.position.x -= 2
+            node.position.x -= self.defineSpeed()
             if node.position.x < -((self.scene?.size.width)!) {
                 node.position.x += ((self.scene?.size.width)! * 3)
             }
         }
         self.enumerateChildNodes(withName: "Floor") { node, error in
-            node.position.x -= 2
+            node.position.x -= self.defineSpeed()
             if node.position.x < -((self.scene?.size.width)!) {
                 node.position.x += ((self.scene?.size.width)! * 3)
             }
@@ -392,13 +416,13 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     
     func movePipes() {
         self.enumerateChildNodes(withName: "TopPipe") { node, error in
-            node.position.x -= 2
+            node.position.x -= self.defineSpeed()
             if node.position.x < -((self.scene?.size.width)!) {
                 node.position.x += ((self.scene?.size.width)! * 3)
             }
         }
         self.enumerateChildNodes(withName: "BottomPipe") { node, error in
-            node.position.x -= 2
+            node.position.x -= self.defineSpeed()
             if node.position.x < -((self.scene?.size.width)!) {
                 node.position.x += ((self.scene?.size.width)! * 3)
             }
@@ -478,7 +502,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         if didStartGame {
             
-            if deltaTime > 2.5 {
+            if deltaTime > defineTime() {
                 let maxTop = (self.scene?.size.height)! - self.bird.size.height*3.5 - (self.scene?.size.height)!*0.15
                 let topValue = Int.random(in: Int((self.scene?.size.height)!*0.15)..<Int(maxTop))
                 let bottomValue = Int(maxTop) - topValue + Int((self.scene?.size.height)!*0.15)
